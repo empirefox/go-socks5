@@ -120,8 +120,8 @@ func (s *Server) handleRequest(conn conn, bufConn io.Reader) error {
 // handleConnect is used to handle a connect command
 func (s *Server) handleConnect(conn conn, bufConn io.Reader, dest, realDest *AddrSpec) error {
 	// Check if this is allowed
-	client := conn.RemoteAddr().(*net.TCPAddr)
-	if !s.config.Rules.AllowConnect(realDest.IP, realDest.Port, client.IP, client.Port) {
+	client, ok := conn.RemoteAddr().(*net.TCPAddr)
+	if ok && !s.config.Rules.AllowConnect(realDest.IP, realDest.Port, client.IP, client.Port) {
 		if err := sendReply(conn, ruleFailure, nil); err != nil {
 			return fmt.Errorf("Failed to send reply: %v", err)
 		}
@@ -168,8 +168,8 @@ func (s *Server) handleConnect(conn conn, bufConn io.Reader, dest, realDest *Add
 // handleBind is used to handle a connect command
 func (s *Server) handleBind(conn conn, bufConn io.Reader, dest, realDest *AddrSpec) error {
 	// Check if this is allowed
-	client := conn.RemoteAddr().(*net.TCPAddr)
-	if !s.config.Rules.AllowBind(realDest.IP, realDest.Port, client.IP, client.Port) {
+	client, ok := conn.RemoteAddr().(*net.TCPAddr)
+	if ok && !s.config.Rules.AllowBind(realDest.IP, realDest.Port, client.IP, client.Port) {
 		if err := sendReply(conn, ruleFailure, nil); err != nil {
 			return fmt.Errorf("Failed to send reply: %v", err)
 		}
@@ -186,8 +186,8 @@ func (s *Server) handleBind(conn conn, bufConn io.Reader, dest, realDest *AddrSp
 // handleAssociate is used to handle a connect command
 func (s *Server) handleAssociate(conn conn, bufConn io.Reader, dest, realDest *AddrSpec) error {
 	// Check if this is allowed
-	client := conn.RemoteAddr().(*net.TCPAddr)
-	if !s.config.Rules.AllowAssociate(realDest.IP, realDest.Port, client.IP, client.Port) {
+	client, ok := conn.RemoteAddr().(*net.TCPAddr)
+	if ok && !s.config.Rules.AllowAssociate(realDest.IP, realDest.Port, client.IP, client.Port) {
 		if err := sendReply(conn, ruleFailure, nil); err != nil {
 			return fmt.Errorf("Failed to send reply: %v", err)
 		}
