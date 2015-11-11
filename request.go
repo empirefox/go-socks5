@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"strings"
-	"time"
 )
 
 const (
@@ -154,15 +153,18 @@ func (s *Server) handleConnect(conn conn, bufConn io.Reader, dest, realDest *Add
 	}
 
 	// Start proxying
-	errCh := make(chan error, 2)
-	go proxy("target", target, bufConn, errCh, s.config.Logger)
-	go proxy("client", conn, target, errCh, s.config.Logger)
+	toTargetErrCh := make(chan error)
+	toClientErrCh := make(chan error)
+	go proxy("target", target, bufConn, toTargetErrCh, s.config.Logger)
+	go proxy("client", conn, target, toClientErrCh, s.config.Logger)
 
 	// Wait
-	select {
-	case e := <-errCh:
-		return e
+	toTargetErr := <-toTargetErrCh
+	toClientErr := <-toClientErrCh
+	if toTargetErr != nil {
+		return toTargetErr
 	}
+	return toClientErr
 }
 
 // handleBind is used to handle a connect command
@@ -308,7 +310,6 @@ func proxy(name string, dst io.Writer, src io.Reader, errCh chan error, logger *
 	// Log, and sleep. This is jank but allows the otherside
 	// to finish a pending copy
 	logger.Printf("[DEBUG] socks: Copied %d bytes to %s", n, name)
-	time.Sleep(10 * time.Millisecond)
 
 	// Send any errors
 	errCh <- err
